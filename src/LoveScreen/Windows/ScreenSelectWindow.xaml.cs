@@ -15,6 +15,7 @@ using System.IO;
 using System.Windows.Ink;
 using LoveScreen.Controls;
 using LoveScreen.Controls.Models;
+using LoveScreen.Windows.Extensions;
 
 namespace LoveScreen.Windows
 {
@@ -50,7 +51,6 @@ namespace LoveScreen.Windows
         // Using a DependencyProperty as the backing store for InnerRectCursor.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty InnerRectCursorProperty =
             DependencyProperty.Register("InnerRectCursor", typeof(Cursor), typeof(ScreenSelectWindow));
-
 
 
         /// <summary>
@@ -109,8 +109,8 @@ namespace LoveScreen.Windows
             this.Height = SystemParameters.PrimaryScreenHeight;
             this.Left = this.Top = 0;
 
-            BackgroundImg.Source = ConvertHelper.ToBitmapImage(ScreenHelper.CaptureFullScreen());
 
+            BackgroundImg.Source = ConvertHelper.ToBitmapImage(ScreenHelper.CaptureFullScreen());
 
             BitmapSource img = ((BitmapSource)BackgroundImg.Source);
             int stride = img.PixelWidth * 4;
@@ -235,7 +235,9 @@ namespace LoveScreen.Windows
             int helpMarginOffset = 10;
 
             //  设置放大镜位置及颜色信息
-            HelpRectMargin = new Thickness((point.X + helpMarginOffset + HelpCanvas.ActualWidth) > this.Width ? (point.X - helpMarginOffset - HelpCanvas.ActualWidth) : (point.X + helpMarginOffset), (point.Y + helpMarginOffset + HelpCanvas.ActualHeight) > this.Height ? (point.Y - helpMarginOffset - HelpCanvas.ActualHeight) : (point.Y + helpMarginOffset), 0, 0);
+            HelpRectMargin = new Thickness((point.X
+                                            + helpMarginOffset
+                                            + HelpCanvas.ActualWidth) > this.Width ? (point.X - helpMarginOffset - HelpCanvas.ActualWidth) : (point.X + helpMarginOffset), (point.Y + helpMarginOffset + HelpCanvas.ActualHeight) > this.Height ? (point.Y - helpMarginOffset - HelpCanvas.ActualHeight) : (point.Y + helpMarginOffset), 0, 0);
             if (m_pixels != null && m_pixels.Length > 0)
             {
                 BitmapSource img = ((BitmapSource)BackgroundImg.Source);
@@ -492,13 +494,25 @@ namespace LoveScreen.Windows
 
         private BitmapSource GetSelectImage()
         {
+            double dpi = this.Dpi();
             DrawingVisual visual = new DrawingVisual();
             DrawingContext context = visual.RenderOpen();
-            CroppedBitmap croppedBitmap01 = new CroppedBitmap((BitmapSource)BackgroundImg.Source, new Int32Rect((int)HightLightRect.X, (int)HightLightRect.Y, (int)HightLightRect.Width, (int)HightLightRect.Height));
-            context.DrawImage(croppedBitmap01, new Rect(0, 0, HightLightRect.Width, HightLightRect.Height));
+            Rect rect = HightLightRect.RectWithDpi(this);
+            CroppedBitmap croppedBitmap01 = new CroppedBitmap((BitmapSource)BackgroundImg.Source,
+                                                              new Int32Rect(
+                                                                  (int)rect.X,
+                                                                  (int)rect.Y,
+                                                                  (int)rect.Width,
+                                                                  (int)rect.Height));
+            context.DrawImage(croppedBitmap01, new Rect(0, 0, rect.Width, rect.Height));
             inkCanvas.Strokes.Draw(context);
             context.Close();
-            RenderTargetBitmap bitmap = new RenderTargetBitmap((int)inkCanvas.ActualWidth, (int)inkCanvas.ActualHeight, 96, 96, PixelFormats.Pbgra32);
+            RenderTargetBitmap bitmap = new RenderTargetBitmap(
+                (int)(inkCanvas.ActualWidth * dpi),
+                (int)(inkCanvas.ActualHeight * dpi),
+                96,
+                96,
+                PixelFormats.Pbgra32);
             bitmap.Render(visual);
             return bitmap;
         }

@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>LoveScreen.Windows</RootNamespace>
     <AssemblyName>LoveScreen.Windows</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
     <TargetFrameworkProfile />
@@ -38,6 +38,7 @@
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -53,6 +54,7 @@
     <Compile Include="Enums\GetWindowLongValue.cs" />
     <Compile Include="Enums\SetWindowPositionFlags.cs" />
     <Compile Include="Enums\WindowStyles.cs" />
+    <Compile Include="Extensions\WindowExt.cs" />
     <Compile Include="Models\CursorInfo.cs" />
     <Compile Include="Models\Hotkey.cs" />
     <Compile Include="Models\IconInfo.cs" />

@@ -5,32 +5,45 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using L_Windows = System.Windows;
 
 namespace LoveScreen.Windows
 {
     public class ScreenHelper
     {
-        public static Bitmap CaptureInternal(Rectangle Region, bool IncludeCursor = false)
+        public static Bitmap CaptureInternal(Rectangle rect, bool IncludeCursor = false)
         {
-            var bmp = new Bitmap(Region.Width, Region.Height);
-
-            using (var g = Graphics.FromImage(bmp))
+            Bitmap bitmap = new Bitmap(rect.Width, rect.Height);
+            using (Graphics graphics = Graphics.FromImage(bitmap))
             {
-                g.CopyFromScreen(Region.Location, Point.Empty, Region.Size, CopyPixelOperation.SourceCopy);
-
-                if (IncludeCursor)
-                    MouseCursor.Draw(g, P => new Point(P.X - Region.X, P.Y - Region.Y));
-
-                g.Flush();
+                graphics.CopyFromScreen(rect.Left, rect.Top, 0, 0, bitmap.Size);
             }
+            return bitmap;
 
-            return bmp;
+            //var bmp = new Bitmap(rect.Width, rect.Height);
+
+            //using (var g = Graphics.FromImage(bmp))
+            //{
+            //    g.CopyFromScreen(rect.Location, Point.Empty, rect.Size, CopyPixelOperation.SourceCopy);
+
+            //    if (IncludeCursor)
+            //        MouseCursor.Draw(g, P => new Point(P.X - rect.X, P.Y - rect.Y));
+
+            //    g.Flush();
+            //}
+
+            //return bmp;
         }
 
         public static Bitmap CaptureFullScreen(bool IncludeCursor = false)
         {
-            var bmp = new Bitmap((int)L_Windows.SystemParameters.PrimaryScreenWidth, (int)L_Windows.SystemParameters.PrimaryScreenHeight);
+            int left = SystemInformation.VirtualScreen.Left;
+            int top = SystemInformation.VirtualScreen.Top;
+            int width = SystemInformation.VirtualScreen.Width;
+            int height = SystemInformation.VirtualScreen.Height;
+            Bitmap bmp = new Bitmap(width, height);
+
             using (var g = Graphics.FromImage(bmp))
             {
                 g.CopyFromScreen(Point.Empty, Point.Empty, bmp.Size, CopyPixelOperation.SourceCopy);

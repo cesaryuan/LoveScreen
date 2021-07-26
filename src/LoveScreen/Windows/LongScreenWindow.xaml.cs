@@ -1,5 +1,6 @@
 ﻿using LoveScreen.Windows.Models;
 using LoveScreen.Windows.Procs;
+using LoveScreen.Windows.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -121,7 +122,16 @@ namespace LoveScreen.Windows
         private void TextBlockFrame_MouseDown(object sender, MouseButtonEventArgs e)
         {
             this.Hide();
-            BitmapImage bitmapSource = ConvertHelper.ToBitmapImage(ScreenHelper.CaptureInternal(new System.Drawing.Rectangle((int)(this.Left + m_thickness), (int)(this.Top + m_thickness), (int)(this.Width - m_thickness * 2), (int)(this.Height - m_thickness * 2))));
+            //System.Drawing.Rectangle rectangle = new System.Drawing.Rectangle(
+            //                (int)(this.Left + m_thickness),
+            //                (int)(this.Top + m_thickness),
+            //                (int)(this.Width - m_thickness * 2),
+            //                (int)(this.Height - m_thickness * 2));
+            System.Drawing.Rectangle rectangle = this.RectWithDpi();
+
+            BitmapImage bitmapSource = 
+                ConvertHelper.ToBitmapImage(
+                    ScreenHelper.CaptureInternal(rectangle));
             imageList.Add(bitmapSource);
             ClipImage();
 
@@ -222,7 +232,8 @@ namespace LoveScreen.Windows
                     for (int j = 0; j < preImage.PixelWidth; j++)
                     {
                         int startIndex = prePixels.Length - (i + 1) * oneRowBytesCount + j * pixbytes;
-                        diffVlaues[j] += Math.Abs(prePixels[startIndex] - prePixels[startIndex - oneRowBytesCount])
+                        diffVlaues[j] += 
+                            Math.Abs(prePixels[startIndex] - prePixels[startIndex - oneRowBytesCount])
                             + Math.Abs(prePixels[startIndex + 1] - prePixels[startIndex + 1 - oneRowBytesCount])
                             + Math.Abs(prePixels[startIndex + 2] - prePixels[startIndex + 2 - oneRowBytesCount]);
                     }
@@ -291,13 +302,13 @@ namespace LoveScreen.Windows
                 DrawingVisual visual = new DrawingVisual();
                 DrawingContext context = visual.RenderOpen();
                 double height = 0;
-                double width = imageList[0].Width;
+                double width = imageList[0].PixelWidth;
                 for (int i = 0; i < imageList.Count; i++)
                 {
                     BitmapImage img = imageList[i];
-                    context.DrawImage(img, new Rect(0, height + 1, img.Width, img.Height));
-                    context.DrawImage(img, new Rect(0, height, img.Width, img.Height));
-                    height += img.Height;
+                    context.DrawImage(img, new Rect(0, height + 1, img.PixelWidth, img.PixelHeight));
+                    context.DrawImage(img, new Rect(0, height, img.PixelWidth, img.PixelHeight));
+                    height += img.PixelHeight;
                 }
                 context.Close();
                 RenderTargetBitmap renderTargetBitmap = new RenderTargetBitmap((int)width, (int)height, 96, 96, PixelFormats.Pbgra32);
