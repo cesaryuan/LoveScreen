@@ -28,14 +28,20 @@
     <Grid DataContext="{Binding ElementName=window}">
         <!--  背景图  -->
         <Image x:Name="BackgroundImg" />
-        <controls:ImageEditTool
-            x:Name="imageEditTool"
+        <!--  画图区域  -->
+        <controls:ExtendedInkCanvas
+            x:Name="inkCanvas"
+            
             Width="{Binding Path=HightLightRect.Width}"
             Height="{Binding Path=HightLightRect.Height}"
             Margin="{Binding Path=HightLightRect, Converter={StaticResource RectToMarginConvert}}"
-            HightLightRect="{Binding Path=HightLightRect, ElementName=window}"
-            Visibility="{Binding Path=InnerFrameMode, Converter={StaticResource IsVisibilityConvert}, ConverterParameter=4}" />
-        
+            HorizontalAlignment="Left"
+            VerticalAlignment="Top"
+            PreviewMouseDown="inkCanvas_PreviewMouseDown">
+            <controls:ExtendedInkCanvas.Background>
+                <ImageBrush ImageSource="{Binding Path=Source, ElementName=BackgroundImg}" Viewbox="{Binding Path=HightLightRect}" />
+            </controls:ExtendedInkCanvas.Background>
+        </controls:ExtendedInkCanvas>
         <!--  黑色遮罩  -->
         <Path
             x:Name="outterFrame"
@@ -92,6 +98,23 @@
                 <RectangleGeometry Rect="{Binding Path=HightLightRect}" />
             </Path.Data>
         </Path>
+        <!--  工具栏  -->
+        <controls:ImageEditTool
+            x:Name="imageEditTool"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Top"
+            Visibility="{Binding Path=InnerFrameMode, Converter={StaticResource IsVisibilityConvert}, ConverterParameter=4}">
+            <controls:ImageEditTool.Margin>
+                <MultiBinding Converter="{StaticResource ToolsMarginConvert}">
+                    <Binding Path="HightLightRect" />
+                    <Binding Path="ActualWidth" RelativeSource="{RelativeSource Self}" />
+                    <Binding Path="ActualHeight" RelativeSource="{RelativeSource Self}" />
+                    <Binding Path="ActualWidth" />
+                    <Binding Path="ActualHeight" />
+                </MultiBinding>
+            </controls:ImageEditTool.Margin>
+        </controls:ImageEditTool>
+        
         <!--  放大镜  -->
         <Canvas
             x:Name="HelpCanvas"

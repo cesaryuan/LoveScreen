@@ -22,16 +22,6 @@ namespace LoveScreen.Controls
     /// </summary>
     public partial class ImageEditTool : UserControl
     {
-        public Rect HightLightRect
-        {
-            get { return (Rect)GetValue(HightLightRectProperty); }
-            set { SetValue(HightLightRectProperty, value); }
-        }
-
-        // Using a DependencyProperty as the backing store for HightLightRect.  This enables animation, styling, binding, etc...
-        public static readonly DependencyProperty HightLightRectProperty =
-            DependencyProperty.Register("HightLightRect", typeof(Rect), typeof(ImageEditTool));
-
         public static readonly RoutedEvent SelectedColorChagnedEvent = ColorPicker.SelectedColorChagnedEvent.AddOwner(typeof(ImageEditTool));
 
         public static readonly RoutedEvent SelectedSizeChagnedEvent = SizePicker.SelectedSizeChagnedEvent.AddOwner(typeof(ImageEditTool));
@@ -180,13 +170,12 @@ namespace LoveScreen.Controls
             set { SetValue(SelectedSizeProperty, value); }
         }
 
-        public ExtendedInkCanvas InkCanvas = null;
         public ImageEditTool()
         {
             InitializeComponent();
-            this.InkCanvas = inkCanvas;
+
         }
-        
+
         private void Rectangle_MouseDown(object sender, MouseButtonEventArgs e)
         {
             Rectangle rectangle = (Rectangle)sender;
