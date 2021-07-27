@@ -24,7 +24,7 @@ namespace LoveScreen.Windows
     /// </summary>
     public partial class ScreenSelectWindow : Window
     {
-
+        #region DependencyProperty
         /// <summary>
         ///     选择框的范围
         /// </summary>
@@ -93,6 +93,7 @@ namespace LoveScreen.Windows
         // Using a DependencyProperty as the backing store for PixInfoStr.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty PixInfoStrProperty =
             DependencyProperty.Register("PixInfoStr", typeof(string), typeof(ScreenSelectWindow), new PropertyMetadata(""));
+        #endregion
 
 
         /// <summary>
@@ -100,7 +101,7 @@ namespace LoveScreen.Windows
         /// </summary>
         byte[] m_pixels;
 
-
+        double dpi = 0;
 
         public ScreenSelectWindow()
         {
@@ -108,7 +109,7 @@ namespace LoveScreen.Windows
             this.Width = SystemParameters.PrimaryScreenWidth;
             this.Height = SystemParameters.PrimaryScreenHeight;
             this.Left = this.Top = 0;
-
+            this.dpi = this.Dpi();
 
             BackgroundImg.Source = ConvertHelper.ToBitmapImage(ScreenHelper.CaptureFullScreen());
 
@@ -307,7 +308,7 @@ namespace LoveScreen.Windows
                 location.Y = HightLightRect.Y + HightLightRect.Height;
                 m_editMode |= 0x0001;
             }
-            ScreenHelper.SetMousePos((int)location.X, (int)location.Y);
+            ScreenHelper.SetMousePos((int)(location.X * dpi), (int)(location.Y * dpi));
             ((UIElement)sender).CaptureMouse();
             InnerFrameMode = 3;
             m_lastPoint = location;
@@ -325,10 +326,20 @@ namespace LoveScreen.Windows
             }
             SetMouseCursor(e);
         }
+        private void innerFrame_MouseUp(object sender, MouseButtonEventArgs e)
+        {
+            m_isMouseDown = false;
+            //  设置查看模式
+            InnerFrameMode = 4;
+            //  清空编辑模式
+            m_editMode = 0;
+            ((UIElement)sender).ReleaseMouseCapture();
+        }
 
         private void SetMouseCursor(MouseEventArgs e)
         {
             Point location = e.GetPosition(innerFrame);
+            //Rect HightLightRect = this.HightLightRect.RectWithDpi(dpi);
             if (Math.Abs(location.X - HightLightRect.X) < 13)
             {
                 if (Math.Abs(location.Y - HightLightRect.Y) < 13)
@@ -429,16 +440,7 @@ namespace LoveScreen.Windows
             m_lastPoint = location;
         }
 
-        private void innerFrame_MouseUp(object sender, MouseButtonEventArgs e)
-        {
-            m_isMouseDown = false;
-            //  设置查看模式
-            InnerFrameMode = 4;
-            //  清空编辑模式
-            m_editMode = 0;
-            ((UIElement)sender).ReleaseMouseCapture();
-        }
-
+       
         private void outterFrame_MouseDown(object sender, MouseButtonEventArgs e)
         {
             if (e.ChangedButton == MouseButton.Right) return;
@@ -485,6 +487,7 @@ namespace LoveScreen.Windows
             inkCanvas.Cursor = Cursors.Pen;
             inkCanvas.DefaultDrawingAttributes.Color = Colors.Red;
         }
+
         private BitmapSource SetClipboard()
         {
             BitmapSource bitmapSource = GetSelectImage();
@@ -497,7 +500,7 @@ namespace LoveScreen.Windows
             double dpi = this.Dpi();
             DrawingVisual visual = new DrawingVisual();
             DrawingContext context = visual.RenderOpen();
-            Rect rect = HightLightRect.RectWithDpi(this);
+            Rect rect = HightLightRect.RectWithDpi(dpi);
             CroppedBitmap croppedBitmap01 = new CroppedBitmap((BitmapSource)BackgroundImg.Source,
                                                               new Int32Rect(
                                                                   (int)rect.X,
@@ -516,6 +519,7 @@ namespace LoveScreen.Windows
             bitmap.Render(visual);
             return bitmap;
         }
+
         DateTime m_lastClickTime;
         private void inkCanvas_PreviewMouseDown(object sender, MouseButtonEventArgs e)
         {

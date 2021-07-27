@@ -31,9 +31,8 @@ namespace LoveScreen.Windows.Extensions
             return VisualTreeHelper.GetDpi(window).DpiScaleX;
         }
 
-        public static Rect RectWithDpi(this Rect rect, Window window)
+        public static Rect RectWithDpi(this Rect rect, double dpi)
         {
-            double dpi = window.Dpi();
             Rect r = new Rect(rect.Location, rect.Size);
             r.Width *= dpi;
             r.Height *= dpi;

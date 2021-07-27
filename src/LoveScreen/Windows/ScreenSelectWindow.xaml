@@ -17,14 +17,14 @@
     ShowInTaskbar="False"
     WindowStyle="None"
     mc:Ignorable="d">
-    
+
     <Window.Resources>
         <convert:WidthHeightToRectConvert x:Key="WidthHeightToRectConvert" />
         <convert:RectToMarginConvert x:Key="RectToMarginConvert" />
         <convert:ToolsMarginConvert x:Key="ToolsMarginConvert" />
         <convert:IsVisibilityConvert x:Key="IsVisibilityConvert" />
     </Window.Resources>
-    
+
     <Grid DataContext="{Binding ElementName=window}">
         <!--  背景图  -->
         <Image x:Name="BackgroundImg" />
@@ -50,7 +50,7 @@
             Opacity="0.7">
             <Path.Data>
                 <CombinedGeometry GeometryCombineMode="Exclude">
-                    
+
                     <CombinedGeometry.Geometry1>
                         <RectangleGeometry>
                             <RectangleGeometry.Rect>
@@ -61,11 +61,11 @@
                             </RectangleGeometry.Rect>
                         </RectangleGeometry>
                     </CombinedGeometry.Geometry1>
-                    
+
                     <CombinedGeometry.Geometry2>
                         <RectangleGeometry Rect="{Binding Path=HightLightRect}" />
                     </CombinedGeometry.Geometry2>
-                    
+
                 </CombinedGeometry>
             </Path.Data>
         </Path>
