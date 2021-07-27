@@ -111,10 +111,11 @@ namespace LoveScreen.Windows
 
 
         double dpi = 0;
-
+        ExtendedInkCanvas inkCanvas = null;
         public ScreenSelectWindow()
         {
             InitializeComponent();
+            inkCanvas = imageEditTool.InkCanvas;
             this.Width = SystemParameters.PrimaryScreenWidth;
             this.Height = SystemParameters.PrimaryScreenHeight;
             this.Left = this.Top = 0;
@@ -136,7 +137,7 @@ namespace LoveScreen.Windows
             CommandManager.RegisterClassCommandBinding(typeof(ScreenSelectWindow), new CommandBinding(ApplicationCommands.Close, CloseCommand_Executed));
             CommandManager.RegisterClassInputBinding(typeof(ScreenSelectWindow), new KeyBinding(ApplicationCommands.Close, new KeyGesture(Key.Escape)));
 
-
+            
             //  绑定事件
             imageEditTool.AddHandler(ImageEditTool.SelectedColorChagnedEvent, new RoutedEventHandler(PenColorChanged));
             imageEditTool.AddHandler(ImageEditTool.SelectedSizeChagnedEvent, new RoutedEventHandler(PenSizeChanged));
