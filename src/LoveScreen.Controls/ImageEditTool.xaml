@@ -1,5 +1,5 @@
 ﻿<UserControl
-    x:Class="LoveScreen.Controls.ImageEditTool"
+    x:Class="LoveScreen.Controls.InkCanvasWithImageEditTool"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:convert="clr-namespace:LoveScreen.Controls.Converts"
@@ -31,12 +31,12 @@
     <Grid DataContext="{Binding ElementName=editor}">
         <local:ExtendedInkCanvas
             x:Name="inkCanvas"
-            HorizontalAlignment="Left"
-            VerticalAlignment="Top"
             Width="{Binding Path=HightLightRect.Width}"
             Height="{Binding Path=HightLightRect.Height}"
             Margin="{Binding Path=HightLightRect, Converter={StaticResource RectToMarginConvert}}"
-            Opacity="0">
+            HorizontalAlignment="Left"
+            VerticalAlignment="Top"
+            Background="Transparent">
             <!--<local:ExtendedInkCanvas.Background>
                 <ImageBrush ImageSource="{Binding Path=Source, ElementName=BackgroundImg}" Viewbox="{Binding Path=HightLightRect}" />
             </local:ExtendedInkCanvas.Background>-->
@@ -67,7 +67,7 @@
                     <ColumnDefinition Width="auto" />
                 </Grid.ColumnDefinitions>
                 <Rectangle
-                    Grid.Column="{Binding DrawModeStyle, Converter={StaticResource ObjectToIntConvert}, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:ImageEditTool}}}"
+                    Grid.Column="{Binding DrawModeStyle, Converter={StaticResource ObjectToIntConvert}, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:InkCanvasWithImageEditTool}}}"
                     Width="28"
                     Height="28"
                     HorizontalAlignment="Center"

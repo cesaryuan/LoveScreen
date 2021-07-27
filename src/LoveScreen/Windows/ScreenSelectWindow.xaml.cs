@@ -24,6 +24,36 @@ namespace LoveScreen.Windows
     /// </summary>
     public partial class ScreenSelectWindow : Window
     {
+        double dpi = 0;
+        public ScreenSelectWindow()
+        {
+            InitializeComponent();
+            this.Width = SystemParameters.PrimaryScreenWidth;
+            this.Height = SystemParameters.PrimaryScreenHeight;
+            this.Left = this.Top = 0;
+            this.dpi = this.Dpi();
+
+            BackgroundImg.Source = ConvertHelper.ToBitmapImage(ScreenHelper.CaptureFullScreen());
+
+            BitmapSource img = (BitmapSource)BackgroundImg.Source;
+            int stride = img.PixelWidth * 4;
+            int size = img.PixelHeight * stride;
+            m_pixels = new byte[size];
+            img.CopyPixels(m_pixels, stride, 0);
+
+            // 注册撤销与重做命令
+            CommandManager.RegisterClassCommandBinding(typeof(ScreenSelectWindow), new CommandBinding(ApplicationCommands.Close, CloseCommand_Executed));
+            CommandManager.RegisterClassInputBinding(typeof(ScreenSelectWindow), new KeyBinding(ApplicationCommands.Close, new KeyGesture(Key.Escape)));
+
+
+            //  绑定事件
+            imageEditTool.AddHandler(InkCanvasWithImageEditTool.OkBtnClickEvent, new RoutedEventHandler(ToolOkBtnClick));
+            imageEditTool.AddHandler(InkCanvasWithImageEditTool.CancelBtnClickEvent, new RoutedEventHandler(ToolCancelBtnClick));
+            imageEditTool.AddHandler(InkCanvasWithImageEditTool.TopBtnClickEvent, new RoutedEventHandler(ToolTopBtnClick));
+            imageEditTool.AddHandler(InkCanvasWithImageEditTool.LongScreenBtnClickEvent, new RoutedEventHandler(ToolLongScreenBtnClick));
+            imageEditTool.AddHandler(InkCanvasWithImageEditTool.RecordBtnClickEvent, new RoutedEventHandler(ToolRecordBtnClick));
+        }
+
         #region DependencyProperty
         /// <summary>
         ///     选择框的范围
@@ -109,72 +139,7 @@ namespace LoveScreen.Windows
         #endregion
 
 
-
-        double dpi = 0;
-        ExtendedInkCanvas inkCanvas = null;
-        public ScreenSelectWindow()
-        {
-            InitializeComponent();
-            inkCanvas = imageEditTool.InkCanvas;
-            this.Width = SystemParameters.PrimaryScreenWidth;
-            this.Height = SystemParameters.PrimaryScreenHeight;
-            this.Left = this.Top = 0;
-            this.dpi = this.Dpi();
-
-            BackgroundImg.Source = ConvertHelper.ToBitmapImage(ScreenHelper.CaptureFullScreen());
-
-            BitmapSource img = (BitmapSource)BackgroundImg.Source;
-            int stride = img.PixelWidth * 4;
-            int size = img.PixelHeight * stride;
-            m_pixels = new byte[size];
-            img.CopyPixels(m_pixels, stride, 0);
-
-            SetDrawTool();
-
-            // 注册撤销与重做命令
-            CommandManager.RegisterClassCommandBinding(typeof(ScreenSelectWindow), new CommandBinding(ApplicationCommands.Redo, RedoCommand_Executed));
-            CommandManager.RegisterClassCommandBinding(typeof(ScreenSelectWindow), new CommandBinding(ApplicationCommands.Undo, UndoCommand_Executed, UndoCommand_CanExecute));
-            CommandManager.RegisterClassCommandBinding(typeof(ScreenSelectWindow), new CommandBinding(ApplicationCommands.Close, CloseCommand_Executed));
-            CommandManager.RegisterClassInputBinding(typeof(ScreenSelectWindow), new KeyBinding(ApplicationCommands.Close, new KeyGesture(Key.Escape)));
-
-            
-            //  绑定事件
-            imageEditTool.AddHandler(ImageEditTool.SelectedColorChagnedEvent, new RoutedEventHandler(PenColorChanged));
-            imageEditTool.AddHandler(ImageEditTool.SelectedSizeChagnedEvent, new RoutedEventHandler(PenSizeChanged));
-            imageEditTool.AddHandler(ImageEditTool.DrawModeStyleChangedEvent, new RoutedEventHandler(DrawModeStyleChanged));
-            imageEditTool.AddHandler(ImageEditTool.OkBtnClickEvent, new RoutedEventHandler(ToolOkBtnClick));
-            imageEditTool.AddHandler(ImageEditTool.CancelBtnClickEvent, new RoutedEventHandler(ToolCancelBtnClick));
-            imageEditTool.AddHandler(ImageEditTool.TopBtnClickEvent, new RoutedEventHandler(ToolTopBtnClick));
-            imageEditTool.AddHandler(ImageEditTool.LongScreenBtnClickEvent, new RoutedEventHandler(ToolLongScreenBtnClick));
-            imageEditTool.AddHandler(ImageEditTool.RecordBtnClickEvent, new RoutedEventHandler(ToolRecordBtnClick));
-        }
-
-        /// <summary>
-        ///     绘制模式改变事件响应
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        public void DrawModeStyleChanged(object sender, RoutedEventArgs e)
-        {
-            ImageEditTool tool = (ImageEditTool)sender;
-            inkCanvas.SetInkTool(ImageEditTool.DrawTools.ElementAt((int)e.OriginalSource));
-            //LongScreenWindow longScreen = new LongScreenWindow();
-            //longScreen.Left = HightLightRect.Left;
-            //longScreen.Top = HightLightRect.Top;
-            //longScreen.Width = HightLightRect.Width;
-            //longScreen.Height = HightLightRect.Height;
-            //longScreen.Show();
-            //this.Close();
-        }
-
-        public void PenColorChanged(object sender, RoutedEventArgs e)
-        {
-            inkCanvas.DefaultDrawingAttributes.Color = (Color)e.OriginalSource;
-        }
-        public void PenSizeChanged(object sender, RoutedEventArgs e)
-        {
-            inkCanvas.DefaultDrawingAttributes.Height = inkCanvas.DefaultDrawingAttributes.Width = (int)e.OriginalSource;
-        }
+        #region ButtonsHandler
         public void ToolOkBtnClick(object sender, RoutedEventArgs e)
         {
             SystemHelper.SetClipboard(GetSelectImage());
@@ -203,38 +168,12 @@ namespace LoveScreen.Windows
             this.Close();
         }
 
-        #region 撤回、重做相关
-        /// <summary>
-        ///     Undo集合
-        /// </summary>
-        List<Stroke> m_undoList = new List<Stroke>();
-
-        private void UndoCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e)
-        {
-            e.CanExecute = inkCanvas.Strokes.Count > 0;
-        }
-        private void UndoCommand_Executed(object sender, ExecutedRoutedEventArgs e)
-        {
-            Stroke stroke = inkCanvas.Strokes.LastOrDefault();
-            m_undoList.Add(stroke);
-            inkCanvas.Strokes.Remove(stroke);
-        }
-
         private void CloseCommand_Executed(object sender, ExecutedRoutedEventArgs e)
         {
             this.Close();
         }
-        private void RedoCommand_Executed(object sender, ExecutedRoutedEventArgs e)
-        {
-            if (m_undoList.Count > 0)
-            {
-                Stroke stroke = m_undoList.LastOrDefault();
-                inkCanvas.Strokes.Add(stroke);
-                m_undoList.Remove(stroke);
-            }
-        }
-
         #endregion
+
 
         #region 放大镜相关
 
@@ -280,7 +219,8 @@ namespace LoveScreen.Windows
         #endregion
 
 
-
+        #region 截图区域调整
+    
         int m_editMode = 0x0000;
         bool m_isMouseDown = false;
         Point m_lastPoint = new Point(0, 0);
@@ -337,35 +277,6 @@ namespace LoveScreen.Windows
             m_editMode = 0;
             ((UIElement)sender).ReleaseMouseCapture();
         }
-
-        private void SetMouseCursor(MouseEventArgs e)
-        {
-            Point location = e.GetPosition(innerFrame);
-            //Rect HightLightRect = this.HightLightRect.RectWithDpi(dpi);
-            if (Math.Abs(location.X - HightLightRect.X) < 13)
-            {
-                if (Math.Abs(location.Y - HightLightRect.Y) < 13)
-                    InnerRectCursor = Cursors.SizeNWSE;
-                else if (Math.Abs(location.Y - HightLightRect.Y - HightLightRect.Height) < 13)
-                    InnerRectCursor = Cursors.SizeNESW;
-                else
-                    InnerRectCursor = Cursors.SizeWE;
-            }
-            else if (Math.Abs(location.X - HightLightRect.X - HightLightRect.Width) < 13)
-            {
-                if (Math.Abs(location.Y - HightLightRect.Y) < 13)
-                    InnerRectCursor = Cursors.SizeNESW;
-                else if (Math.Abs(location.Y - HightLightRect.Y - HightLightRect.Height) < 13)
-                    InnerRectCursor = Cursors.SizeNWSE;
-                else
-                    InnerRectCursor = Cursors.SizeWE;
-            }
-            else if (Math.Abs(location.Y - HightLightRect.Y) < 13)
-                InnerRectCursor = Cursors.SizeNS;
-            else if (Math.Abs(location.Y - HightLightRect.Y - HightLightRect.Height) < 13)
-                InnerRectCursor = Cursors.SizeNS;
-        }
-
         /// <summary>
         ///     计算选择框高亮区域
         /// </summary>
@@ -441,8 +352,42 @@ namespace LoveScreen.Windows
             HightLightRect = curRect;
             m_lastPoint = location;
         }
+        private void SetMouseCursor(MouseEventArgs e)
+        {
+            Point location = e.GetPosition(innerFrame);
+            //Rect HightLightRect = this.HightLightRect.RectWithDpi(dpi);
+            if (Math.Abs(location.X - HightLightRect.X) < 13)
+            {
+                if (Math.Abs(location.Y - HightLightRect.Y) < 13)
+                    InnerRectCursor = Cursors.SizeNWSE;
+                else if (Math.Abs(location.Y - HightLightRect.Y - HightLightRect.Height) < 13)
+                    InnerRectCursor = Cursors.SizeNESW;
+                else
+                    InnerRectCursor = Cursors.SizeWE;
+            }
+            else if (Math.Abs(location.X - HightLightRect.X - HightLightRect.Width) < 13)
+            {
+                if (Math.Abs(location.Y - HightLightRect.Y) < 13)
+                    InnerRectCursor = Cursors.SizeNESW;
+                else if (Math.Abs(location.Y - HightLightRect.Y - HightLightRect.Height) < 13)
+                    InnerRectCursor = Cursors.SizeNWSE;
+                else
+                    InnerRectCursor = Cursors.SizeWE;
+            }
+            else if (Math.Abs(location.Y - HightLightRect.Y) < 13)
+                InnerRectCursor = Cursors.SizeNS;
+            else if (Math.Abs(location.Y - HightLightRect.Y - HightLightRect.Height) < 13)
+                InnerRectCursor = Cursors.SizeNS;
+        }
 
-       
+        #endregion
+
+
+        /// <summary>
+        /// 初始截图事件
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void outterFrame_MouseDown(object sender, MouseButtonEventArgs e)
         {
             if (e.ChangedButton == MouseButton.Right) return;
@@ -465,6 +410,11 @@ namespace LoveScreen.Windows
             }
         }
 
+        /// <summary>
+        /// 右键取消截图
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void window_MouseUp(object sender, MouseButtonEventArgs e)
         {
             if (e.ChangedButton == MouseButton.Right)
@@ -475,19 +425,12 @@ namespace LoveScreen.Windows
                 }
                 else
                 {
-                    inkCanvas.Strokes.Clear();
+                    imageEditTool.InkCanvas.Strokes.Clear();
                     m_editMode = 0;
                     InnerFrameMode = InnerFrameModeEnum.WaitingForSelect;
                     HightLightRect = new Rect(0, 0, 0, 0);
                 }
             }
-        }
-
-        private void SetDrawTool()
-        {
-            inkCanvas.UseCustomCursor = true;
-            inkCanvas.Cursor = Cursors.Pen;
-            inkCanvas.DefaultDrawingAttributes.Color = Colors.Red;
         }
 
         private BitmapSource GetSelectImage()
@@ -503,11 +446,11 @@ namespace LoveScreen.Windows
                                                                   (int)rect.Width,
                                                                   (int)rect.Height));
             context.DrawImage(croppedBitmap01, new Rect(0, 0, rect.Width, rect.Height));
-            inkCanvas.Strokes.Draw(context);
+            imageEditTool.InkCanvas.Strokes.Draw(context);
             context.Close();
             RenderTargetBitmap bitmap = new RenderTargetBitmap(
-                (int)(inkCanvas.ActualWidth * dpi),
-                (int)(inkCanvas.ActualHeight * dpi),
+                (int)(imageEditTool.InkCanvas.ActualWidth * dpi),
+                (int)(imageEditTool.InkCanvas.ActualHeight * dpi),
                 96,
                 96,
                 PixelFormats.Pbgra32);
@@ -515,34 +458,29 @@ namespace LoveScreen.Windows
             return bitmap;
         }
 
-        DateTime m_lastClickTime;
+        //DateTime m_lastClickTime;
+        //private void inkCanvas_PreviewMouseDown(object sender, MouseButtonEventArgs e)
+        //{
+        //    m_undoList.Clear();
+        //    if (e.ChangedButton == MouseButton.Left)
+        //    {
+        //        DateTime curTime = DateTime.Now;
+        //        Point curPoint = e.GetPosition(this);
+        //        // 双击截图
+        //        if ((curTime - m_lastClickTime).Milliseconds < 200 && Math.Abs(m_lastPoint.X - curPoint.X) < 5 && Math.Abs(m_lastPoint.Y - curPoint.Y) < 5)
+        //        {
+        //            inkCanvas.Strokes.Remove(inkCanvas.Strokes.LastOrDefault());
+        //            SystemHelper.SetClipboard(GetSelectImage());
+        //            this.Close();
+        //        }
+        //        else
+        //        {
+        //            m_lastPoint = curPoint;
+        //            m_lastClickTime = curTime;
+        //        }
+        //    }
+        //}
 
-        private void inkCanvas_PreviewMouseDown(object sender, MouseButtonEventArgs e)
-        {
-            m_undoList.Clear();
-            if (e.ChangedButton == MouseButton.Left)
-            {
-                DateTime curTime = DateTime.Now;
-                Point curPoint = e.GetPosition(this);
-                // 双击截图
-                if ((curTime - m_lastClickTime).Milliseconds < 200 && Math.Abs(m_lastPoint.X - curPoint.X) < 5 && Math.Abs(m_lastPoint.Y - curPoint.Y) < 5)
-                {
-                    inkCanvas.Strokes.Remove(inkCanvas.Strokes.LastOrDefault());
-                    SystemHelper.SetClipboard(GetSelectImage());
-                    this.Close();
-                }
-                else
-                {
-                    m_lastPoint = curPoint;
-                    m_lastClickTime = curTime;
-                }
-            }
-        }
-
-        private void outterFrame_MouseMove(object sender, MouseEventArgs e)
-        {
-
-        }
     }
 
     public enum InnerFrameModeEnum

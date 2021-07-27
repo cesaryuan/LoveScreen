@@ -8,6 +8,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
+using System.Windows.Ink;
 using System.Windows.Input;
 using System.Windows.Input.StylusPlugIns;
 using System.Windows.Media;
@@ -20,126 +21,202 @@ namespace LoveScreen.Controls
     /// <summary>
     /// ImageEditTool.xaml 的交互逻辑
     /// </summary>
-    public partial class ImageEditTool : UserControl
+    public partial class InkCanvasWithImageEditTool : UserControl
     {
+        public InkCanvasWithImageEditTool()
+        {
+            InitializeComponent();
+            this.InkCanvas = inkCanvas;
+            CommandManager.RegisterClassCommandBinding(typeof(InkCanvasWithImageEditTool), new CommandBinding(ApplicationCommands.Redo, RedoCommand_Executed));
+            CommandManager.RegisterClassCommandBinding(typeof(InkCanvasWithImageEditTool), new CommandBinding(ApplicationCommands.Undo, UndoCommand_Executed, UndoCommand_CanExecute));
+            this.AddHandler(InkCanvasWithImageEditTool.SelectedColorChagnedEvent, new RoutedEventHandler(PenColorChanged));
+            this.AddHandler(InkCanvasWithImageEditTool.SelectedSizeChagnedEvent, new RoutedEventHandler(PenSizeChanged));
+            this.AddHandler(InkCanvasWithImageEditTool.DrawModeStyleChangedEvent, new RoutedEventHandler(DrawModeStyleChanged));
+            
+            // 初始绘图属性
+            inkCanvas.UseCustomCursor = true;
+            inkCanvas.Cursor = Cursors.Pen;
+            inkCanvas.DefaultDrawingAttributes.Color = Colors.Red;
+        }
+
+        #region 撤回、重做相关
+        /// <summary>
+        ///     Undo集合
+        /// </summary>
+        List<Stroke> m_undoList = new List<Stroke>();
+
+        private void UndoCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = inkCanvas.Strokes.Count > 0;
+        }
+        private void UndoCommand_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            Stroke stroke = inkCanvas.Strokes.LastOrDefault();
+            m_undoList.Add(stroke);
+            inkCanvas.Strokes.Remove(stroke);
+        }
+
+
+        private void RedoCommand_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            if (m_undoList.Count > 0)
+            {
+                Stroke stroke = m_undoList.LastOrDefault();
+                inkCanvas.Strokes.Add(stroke);
+                m_undoList.Remove(stroke);
+            }
+        }
+
+        #endregion
+
+        #region Event
+        /// <summary>
+        ///     绘制模式改变事件响应
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        public void DrawModeStyleChanged(object sender, RoutedEventArgs e)
+        {
+            InkCanvasWithImageEditTool tool = (InkCanvasWithImageEditTool)sender;
+            inkCanvas.SetInkTool(InkCanvasWithImageEditTool.DrawTools.ElementAt((int)e.OriginalSource));
+            //LongScreenWindow longScreen = new LongScreenWindow();
+            //longScreen.Left = HightLightRect.Left;
+            //longScreen.Top = HightLightRect.Top;
+            //longScreen.Width = HightLightRect.Width;
+            //longScreen.Height = HightLightRect.Height;
+            //longScreen.Show();
+            //this.Close();
+        }
+        public void PenColorChanged(object sender, RoutedEventArgs e)
+        {
+            inkCanvas.DefaultDrawingAttributes.Color = (Color)e.OriginalSource;
+        }
+        public void PenSizeChanged(object sender, RoutedEventArgs e)
+        {
+            inkCanvas.DefaultDrawingAttributes.Height = inkCanvas.DefaultDrawingAttributes.Width = (int)e.OriginalSource;
+        }
+      
+        #endregion
+
+
         public Rect HightLightRect
         {
             get { return (Rect)GetValue(HightLightRectProperty); }
             set { SetValue(HightLightRectProperty, value); }
         }
-
         // Using a DependencyProperty as the backing store for HightLightRect.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty HightLightRectProperty =
-            DependencyProperty.Register("HightLightRect", typeof(Rect), typeof(ImageEditTool));
+            DependencyProperty.Register("HightLightRect", typeof(Rect), typeof(InkCanvasWithImageEditTool));
 
-        public static readonly RoutedEvent SelectedColorChagnedEvent = ColorPicker.SelectedColorChagnedEvent.AddOwner(typeof(ImageEditTool));
+        public static readonly RoutedEvent SelectedColorChagnedEvent = ColorPicker.SelectedColorChagnedEvent.AddOwner(typeof(InkCanvasWithImageEditTool));
 
-        public static readonly RoutedEvent SelectedSizeChagnedEvent = SizePicker.SelectedSizeChagnedEvent.AddOwner(typeof(ImageEditTool));
+        public static readonly RoutedEvent SelectedSizeChagnedEvent = SizePicker.SelectedSizeChagnedEvent.AddOwner(typeof(InkCanvasWithImageEditTool));
 
-        public static readonly DependencyProperty SelectedColorProperty = ColorPicker.SelectedColorProperty.AddOwner(typeof(ImageEditTool));
+        public static readonly DependencyProperty SelectedColorProperty = ColorPicker.SelectedColorProperty.AddOwner(typeof(InkCanvasWithImageEditTool));
 
-        public static readonly DependencyProperty SelectedSizeProperty = SizePicker.SelectedSizeProperty.AddOwner(typeof(ImageEditTool));
+        public static readonly DependencyProperty SelectedSizeProperty = SizePicker.SelectedSizeProperty.AddOwner(typeof(InkCanvasWithImageEditTool));
 
         public static readonly RoutedEvent DrawModeStyleChangedEvent = EventManager.RegisterRoutedEvent("DrawModeStyleChanged",
             RoutingStrategy.Bubble,
             typeof(RoutedEventHandler),
-            typeof(ImageEditTool));
+            typeof(InkCanvasWithImageEditTool));
 
         public static readonly RoutedEvent OkBtnClickEvent = EventManager.RegisterRoutedEvent("OkBtnClick",
             RoutingStrategy.Bubble,
             typeof(RoutedEventHandler),
-            typeof(ImageEditTool));
+            typeof(InkCanvasWithImageEditTool));
 
         public static readonly RoutedEvent CancelBtnClickEvent = EventManager.RegisterRoutedEvent("CancelBtnClick",
             RoutingStrategy.Bubble,
             typeof(RoutedEventHandler),
-            typeof(ImageEditTool));
+            typeof(InkCanvasWithImageEditTool));
 
         public static readonly RoutedEvent TopBtnClickEvent = EventManager.RegisterRoutedEvent("TopBtnClick",
             RoutingStrategy.Bubble,
             typeof(RoutedEventHandler),
-            typeof(ImageEditTool));
+            typeof(InkCanvasWithImageEditTool));
 
         public static readonly RoutedEvent LongScreenBtnClickEvent = EventManager.RegisterRoutedEvent("LongScreenBtnClick",
             RoutingStrategy.Bubble,
             typeof(RoutedEventHandler),
-            typeof(ImageEditTool));
+            typeof(InkCanvasWithImageEditTool));
 
         public static readonly RoutedEvent RecordBtnClickEvent = EventManager.RegisterRoutedEvent("RecordBtnClick",
             RoutingStrategy.Bubble,
             typeof(RoutedEventHandler),
-            typeof(ImageEditTool));
+            typeof(InkCanvasWithImageEditTool));
 
-        public event RoutedEventHandler DrawModeStyleChanged
-        {
-            add
-            {
-                base.AddHandler(ImageEditTool.DrawModeStyleChangedEvent, value);
-            }
+        //public event RoutedEventHandler DrawModeStyleChanged
+        //{
+        //    add
+        //    {
+        //        base.AddHandler(InkCanvasWithImageEditTool.DrawModeStyleChangedEvent, value);
+        //    }
 
-            remove
-            {
-                base.RemoveHandler(ImageEditTool.DrawModeStyleChangedEvent, value);
-            }
-        }
+        //    remove
+        //    {
+        //        base.RemoveHandler(InkCanvasWithImageEditTool.DrawModeStyleChangedEvent, value);
+        //    }
+        //}
+
         public event RoutedEventHandler OkBtnClick
         {
             add
             {
-                base.AddHandler(ImageEditTool.OkBtnClickEvent, value);
+                base.AddHandler(InkCanvasWithImageEditTool.OkBtnClickEvent, value);
             }
 
             remove
             {
-                base.RemoveHandler(ImageEditTool.OkBtnClickEvent, value);
+                base.RemoveHandler(InkCanvasWithImageEditTool.OkBtnClickEvent, value);
             }
         }
         public event RoutedEventHandler CancelBtnClick
         {
             add
             {
-                base.AddHandler(ImageEditTool.CancelBtnClickEvent, value);
+                base.AddHandler(InkCanvasWithImageEditTool.CancelBtnClickEvent, value);
             }
 
             remove
             {
-                base.RemoveHandler(ImageEditTool.CancelBtnClickEvent, value);
+                base.RemoveHandler(InkCanvasWithImageEditTool.CancelBtnClickEvent, value);
             }
         }
         public event RoutedEventHandler TopBtnClick
         {
             add
             {
-                base.AddHandler(ImageEditTool.TopBtnClickEvent, value);
+                base.AddHandler(InkCanvasWithImageEditTool.TopBtnClickEvent, value);
             }
 
             remove
             {
-                base.RemoveHandler(ImageEditTool.TopBtnClickEvent, value);
+                base.RemoveHandler(InkCanvasWithImageEditTool.TopBtnClickEvent, value);
             }
         }
         public event RoutedEventHandler LongScreenBtnClick
         {
             add
             {
-                base.AddHandler(ImageEditTool.LongScreenBtnClickEvent, value);
+                base.AddHandler(InkCanvasWithImageEditTool.LongScreenBtnClickEvent, value);
             }
 
             remove
             {
-                base.RemoveHandler(ImageEditTool.LongScreenBtnClickEvent, value);
+                base.RemoveHandler(InkCanvasWithImageEditTool.LongScreenBtnClickEvent, value);
             }
         }
         public event RoutedEventHandler RecordBtnClick
         {
             add
             {
-                base.AddHandler(ImageEditTool.RecordBtnClickEvent, value);
+                base.AddHandler(InkCanvasWithImageEditTool.RecordBtnClickEvent, value);
             }
 
             remove
             {
-                base.RemoveHandler(ImageEditTool.RecordBtnClickEvent, value);
+                base.RemoveHandler(InkCanvasWithImageEditTool.RecordBtnClickEvent, value);
             }
         }
 
@@ -159,12 +236,12 @@ namespace LoveScreen.Controls
 
         // Using a DependencyProperty as the backing store for DrawModeStyle.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty DrawModeStyleProperty =
-            DependencyProperty.Register("DrawModeStyle", typeof(DrawMode), typeof(ImageEditTool), new PropertyMetadata(DrawMode.Pen, DrawModeStyleChangedCallback));
+            DependencyProperty.Register("DrawModeStyle", typeof(DrawMode), typeof(InkCanvasWithImageEditTool), new PropertyMetadata(DrawMode.Pen, DrawModeStyleChangedCallback));
 
         public static void DrawModeStyleChangedCallback(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            ImageEditTool tool = (ImageEditTool)d;
-            RoutedEventArgs args = new RoutedEventArgs(ImageEditTool.DrawModeStyleChangedEvent, e.NewValue);
+            InkCanvasWithImageEditTool tool = (InkCanvasWithImageEditTool)d;
+            RoutedEventArgs args = new RoutedEventArgs(InkCanvasWithImageEditTool.DrawModeStyleChangedEvent, e.NewValue);
             tool.RaiseEvent(args);
         }
 
@@ -181,11 +258,7 @@ namespace LoveScreen.Controls
         }
 
         public ExtendedInkCanvas InkCanvas = null;
-        public ImageEditTool()
-        {
-            InitializeComponent();
-            this.InkCanvas = inkCanvas;
-        }
+
         
         private void Rectangle_MouseDown(object sender, MouseButtonEventArgs e)
         {
@@ -195,29 +268,29 @@ namespace LoveScreen.Controls
 
         private void TopButton_Click(object sender, RoutedEventArgs e)
         {
-            RoutedEventArgs args = new RoutedEventArgs(ImageEditTool.TopBtnClickEvent, e.OriginalSource);
+            RoutedEventArgs args = new RoutedEventArgs(InkCanvasWithImageEditTool.TopBtnClickEvent, e.OriginalSource);
             RaiseEvent(args);
         }
 
         private void CancelButton_Click(object sender, RoutedEventArgs e)
         {
-            RoutedEventArgs args = new RoutedEventArgs(ImageEditTool.CancelBtnClickEvent, e.OriginalSource);
+            RoutedEventArgs args = new RoutedEventArgs(InkCanvasWithImageEditTool.CancelBtnClickEvent, e.OriginalSource);
             RaiseEvent(args);
         }
 
         private void OkButton_Click(object sender, RoutedEventArgs e)
         {
-            RoutedEventArgs args = new RoutedEventArgs(ImageEditTool.OkBtnClickEvent, e.OriginalSource);
+            RoutedEventArgs args = new RoutedEventArgs(InkCanvasWithImageEditTool.OkBtnClickEvent, e.OriginalSource);
             RaiseEvent(args);
         }
         private void LongScreenButton_Click(object sender, RoutedEventArgs e)
         {
-            RoutedEventArgs args = new RoutedEventArgs(ImageEditTool.LongScreenBtnClickEvent, e.OriginalSource);
+            RoutedEventArgs args = new RoutedEventArgs(InkCanvasWithImageEditTool.LongScreenBtnClickEvent, e.OriginalSource);
             RaiseEvent(args);
         }
         private void RecordButton_Click(object sender, RoutedEventArgs e)
         {
-            RoutedEventArgs args = new RoutedEventArgs(ImageEditTool.RecordBtnClickEvent, e.OriginalSource);
+            RoutedEventArgs args = new RoutedEventArgs(InkCanvasWithImageEditTool.RecordBtnClickEvent, e.OriginalSource);
             RaiseEvent(args);
         }
     }

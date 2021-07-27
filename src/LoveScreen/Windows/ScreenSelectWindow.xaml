@@ -9,8 +9,6 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     x:Name="window"
     Title="ScreenSelectWindow"
-    Width="800"
-    Height="450"
     MouseMove="window_MouseMove"
     MouseUp="window_MouseUp"
     ResizeMode="NoResize"
@@ -28,19 +26,12 @@
     <Grid DataContext="{Binding ElementName=window}">
         <!--  背景图  -->
         <Image x:Name="BackgroundImg" />
-        <controls:ImageEditTool
-            x:Name="imageEditTool"
-            HorizontalAlignment="Left"
-            VerticalAlignment="Top"
-            HightLightRect="{Binding Path=HightLightRect, ElementName=window}"
-            Visibility="{Binding Path=InnerFrameMode, Converter={StaticResource IsVisibilityConvert}, ConverterParameter=4}" />
-
+        
         <!--  黑色遮罩  -->
         <Path
             x:Name="outterFrame"
             Fill="Black"
             MouseDown="outterFrame_MouseDown"
-            MouseMove="outterFrame_MouseMove"
             Opacity="0.7">
             <Path.Data>
                 <CombinedGeometry GeometryCombineMode="Exclude">
@@ -63,12 +54,14 @@
                 </CombinedGeometry>
             </Path.Data>
         </Path>
+        
         <!--  选择框 白色  -->
         <Path Stroke="White" StrokeThickness="2">
             <Path.Data>
                 <RectangleGeometry Rect="{Binding Path=HightLightRect}" />
             </Path.Data>
         </Path>
+        
         <!--  选择框 黑色  -->
         <Path
             Stroke="Black"
@@ -78,6 +71,7 @@
                 <RectangleGeometry Rect="{Binding Path=HightLightRect}" />
             </Path.Data>
         </Path>
+        
         <!--  选择框 透明  -->
         <Path
             x:Name="innerFrame"
@@ -91,6 +85,7 @@
                 <RectangleGeometry Rect="{Binding Path=HightLightRect}" />
             </Path.Data>
         </Path>
+        
         <!--  放大镜  -->
         <Canvas
             x:Name="HelpCanvas"
@@ -152,5 +147,13 @@
                 Foreground="White"
                 Text="{Binding Path=PixInfoStr}" />
         </Canvas>
+
+        <controls:InkCanvasWithImageEditTool
+            x:Name="imageEditTool"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Top"
+            HightLightRect="{Binding Path=HightLightRect, ElementName=window}"
+            Visibility="{Binding Path=InnerFrameMode, Converter={StaticResource IsVisibilityConvert}, ConverterParameter=4}" />
+
     </Grid>
 </Window>
