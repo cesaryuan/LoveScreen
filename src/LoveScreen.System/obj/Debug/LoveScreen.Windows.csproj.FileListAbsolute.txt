@@ -1,6 +1,0 @@
-E:\04ProgramFile\Program\Github\LoveScreen\src\LoveScreen.System\bin\Debug\LoveScreen.Windows.dll
-E:\04ProgramFile\Program\Github\LoveScreen\src\LoveScreen.System\bin\Debug\LoveScreen.Windows.pdb
-E:\04ProgramFile\Program\Github\LoveScreen\src\LoveScreen.System\obj\Debug\LoveScreen.Windows.csproj.AssemblyReference.cache
-E:\04ProgramFile\Program\Github\LoveScreen\src\LoveScreen.System\obj\Debug\LoveScreen.Windows.csproj.CoreCompileInputs.cache
-E:\04ProgramFile\Program\Github\LoveScreen\src\LoveScreen.System\obj\Debug\LoveScreen.Windows.dll
-E:\04ProgramFile\Program\Github\LoveScreen\src\LoveScreen.System\obj\Debug\LoveScreen.Windows.pdb

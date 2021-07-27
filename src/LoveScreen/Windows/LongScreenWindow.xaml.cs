@@ -24,7 +24,7 @@ namespace LoveScreen.Windows
     {
         bool isDown = false;
         Point downPoint;
-        double m_thickness = 2;
+        double m_thickness = 0;
 
 
         public LongScreenWindow(double left, double top, double width, double height)

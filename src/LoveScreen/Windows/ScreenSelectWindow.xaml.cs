@@ -112,7 +112,7 @@ namespace LoveScreen.Windows
 
             BackgroundImg.Source = ConvertHelper.ToBitmapImage(ScreenHelper.CaptureFullScreen());
 
-            BitmapSource img = ((BitmapSource)BackgroundImg.Source);
+            BitmapSource img = (BitmapSource)BackgroundImg.Source;
             int stride = img.PixelWidth * 4;
             int size = img.PixelHeight * stride;
             m_pixels = new byte[size];
