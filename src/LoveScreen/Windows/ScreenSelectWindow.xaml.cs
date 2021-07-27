@@ -93,13 +93,22 @@ namespace LoveScreen.Windows
         // Using a DependencyProperty as the backing store for PixInfoStr.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty PixInfoStrProperty =
             DependencyProperty.Register("PixInfoStr", typeof(string), typeof(ScreenSelectWindow), new PropertyMetadata(""));
-        #endregion
 
 
         /// <summary>
-        ///     缓存的图片像素集合，用于取色
+        ///     选中框模式，1：自动 3：编辑 4：查看
         /// </summary>
-        byte[] m_pixels;
+        public InnerFrameModeEnum InnerFrameMode
+        {
+            get { return (InnerFrameModeEnum)GetValue(InnerFrameModeProperty); }
+            set { SetValue(InnerFrameModeProperty, value); }
+        }
+        // Using a DependencyProperty as the backing store for InnerFrameMode.  This enables animation, styling, binding, etc...
+        public static readonly DependencyProperty InnerFrameModeProperty =
+            DependencyProperty.Register("InnerFrameMode", typeof(InnerFrameModeEnum), typeof(ScreenSelectWindow), new PropertyMetadata(InnerFrameModeEnum.WaitingForSelect));
+        #endregion
+
+
 
         double dpi = 0;
 
@@ -167,7 +176,7 @@ namespace LoveScreen.Windows
         }
         public void ToolOkBtnClick(object sender, RoutedEventArgs e)
         {
-            SetClipboard();
+            SystemHelper.SetClipboard(GetSelectImage());
             this.Close();
         }
         public void ToolCancelBtnClick(object sender, RoutedEventArgs e)
@@ -176,7 +185,7 @@ namespace LoveScreen.Windows
         }
         public void ToolTopBtnClick(object sender, RoutedEventArgs e)
         {
-            TopImage topImage = new TopImage(SetClipboard(), HightLightRect.Left, HightLightRect.Top);
+            TopImage topImage = new TopImage(SystemHelper.SetClipboard(GetSelectImage()), HightLightRect.Left, HightLightRect.Top);
             topImage.Show();
             this.Close();
         }
@@ -193,6 +202,7 @@ namespace LoveScreen.Windows
             this.Close();
         }
 
+        #region 撤回、重做相关
         /// <summary>
         ///     Undo集合
         /// </summary>
@@ -223,6 +233,14 @@ namespace LoveScreen.Windows
             }
         }
 
+        #endregion
+
+        #region 放大镜相关
+
+        /// <summary>
+        ///     缓存的图片像素集合，用于取色
+        /// </summary>
+        byte[] m_pixels;
         private void window_MouseMove(object sender, MouseEventArgs e)
         {
             Point point = e.GetPosition(this);
@@ -258,24 +276,7 @@ namespace LoveScreen.Windows
 
 
         }
-
-
-
-        /// <summary>
-        ///     选中框模式，1：自动 3：编辑 4：查看
-        /// </summary>
-        public int InnerFrameMode
-        {
-            get { return (int)GetValue(InnerFrameModeProperty); }
-            set { SetValue(InnerFrameModeProperty, value); }
-        }
-
-        // Using a DependencyProperty as the backing store for InnerFrameMode.  This enables animation, styling, binding, etc...
-        public static readonly DependencyProperty InnerFrameModeProperty =
-            DependencyProperty.Register("InnerFrameMode", typeof(int), typeof(ScreenSelectWindow), new PropertyMetadata(1));
-
-
-
+        #endregion
 
 
 
@@ -310,7 +311,7 @@ namespace LoveScreen.Windows
             }
             ScreenHelper.SetMousePos((int)(location.X * dpi), (int)(location.Y * dpi));
             ((UIElement)sender).CaptureMouse();
-            InnerFrameMode = 3;
+            InnerFrameMode = InnerFrameModeEnum.Resizing;
             m_lastPoint = location;
             //e.Handled = true;
         }
@@ -318,7 +319,7 @@ namespace LoveScreen.Windows
         {
             if (m_isMouseDown)
             {
-                if (InnerFrameMode == 3)
+                if (InnerFrameMode == InnerFrameModeEnum.Resizing)
                 {
                     //  计算选择框高亮区域
                     CalcHightLightRect(e);
@@ -330,7 +331,7 @@ namespace LoveScreen.Windows
         {
             m_isMouseDown = false;
             //  设置查看模式
-            InnerFrameMode = 4;
+            InnerFrameMode = InnerFrameModeEnum.Drawing;
             //  清空编辑模式
             m_editMode = 0;
             ((UIElement)sender).ReleaseMouseCapture();
@@ -444,7 +445,7 @@ namespace LoveScreen.Windows
         private void outterFrame_MouseDown(object sender, MouseButtonEventArgs e)
         {
             if (e.ChangedButton == MouseButton.Right) return;
-            if (InnerFrameMode == 1)
+            if (InnerFrameMode == InnerFrameModeEnum.WaitingForSelect)
             {
                 //  创建选择框
                 m_isMouseDown = true;
@@ -455,7 +456,7 @@ namespace LoveScreen.Windows
                 newRect.Height = 0;
                 HightLightRect = newRect;
                 //  使用选择框编辑模式进行绘制
-                InnerFrameMode = 3;
+                InnerFrameMode = InnerFrameModeEnum.Resizing;
                 m_editMode = 0x0011;
                 m_lastPoint = location;
                 e.Handled = true;
@@ -467,7 +468,7 @@ namespace LoveScreen.Windows
         {
             if (e.ChangedButton == MouseButton.Right)
             {
-                if (InnerFrameMode == 1)
+                if (InnerFrameMode == InnerFrameModeEnum.WaitingForSelect)
                 {
                     this.Close();
                 }
@@ -475,7 +476,7 @@ namespace LoveScreen.Windows
                 {
                     inkCanvas.Strokes.Clear();
                     m_editMode = 0;
-                    InnerFrameMode = 1;
+                    InnerFrameMode = InnerFrameModeEnum.WaitingForSelect;
                     HightLightRect = new Rect(0, 0, 0, 0);
                 }
             }
@@ -486,13 +487,6 @@ namespace LoveScreen.Windows
             inkCanvas.UseCustomCursor = true;
             inkCanvas.Cursor = Cursors.Pen;
             inkCanvas.DefaultDrawingAttributes.Color = Colors.Red;
-        }
-
-        private BitmapSource SetClipboard()
-        {
-            BitmapSource bitmapSource = GetSelectImage();
-            Clipboard.SetImage(bitmapSource);
-            return bitmapSource;
         }
 
         private BitmapSource GetSelectImage()
@@ -521,6 +515,7 @@ namespace LoveScreen.Windows
         }
 
         DateTime m_lastClickTime;
+
         private void inkCanvas_PreviewMouseDown(object sender, MouseButtonEventArgs e)
         {
             m_undoList.Clear();
@@ -528,10 +523,11 @@ namespace LoveScreen.Windows
             {
                 DateTime curTime = DateTime.Now;
                 Point curPoint = e.GetPosition(this);
+                // 双击截图
                 if ((curTime - m_lastClickTime).Milliseconds < 200 && Math.Abs(m_lastPoint.X - curPoint.X) < 5 && Math.Abs(m_lastPoint.Y - curPoint.Y) < 5)
                 {
                     inkCanvas.Strokes.Remove(inkCanvas.Strokes.LastOrDefault());
-                    SetClipboard();
+                    SystemHelper.SetClipboard(GetSelectImage());
                     this.Close();
                 }
                 else
@@ -546,5 +542,14 @@ namespace LoveScreen.Windows
         {
 
         }
+    }
+
+    public enum InnerFrameModeEnum
+    {
+        WaitingForSelect = 1,
+        Resizing = 3,
+        Drawing = 4,
+        LongScreen = 5,
+
     }
 }

@@ -48,6 +48,7 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="SystemHelper.cs" />
     <Compile Include="ConvertHelper.cs" />
     <Compile Include="Enums\DrawIconExFlags.cs" />
     <Compile Include="Enums\GetWindowEnum.cs" />

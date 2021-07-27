@@ -31,6 +31,7 @@
         <!--  画图区域  -->
         <controls:ExtendedInkCanvas
             x:Name="inkCanvas"
+            
             Width="{Binding Path=HightLightRect.Width}"
             Height="{Binding Path=HightLightRect.Height}"
             Margin="{Binding Path=HightLightRect, Converter={StaticResource RectToMarginConvert}}"
@@ -113,6 +114,7 @@
                 </MultiBinding>
             </controls:ImageEditTool.Margin>
         </controls:ImageEditTool>
+        
         <!--  放大镜  -->
         <Canvas
             x:Name="HelpCanvas"
