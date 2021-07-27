@@ -27,13 +27,15 @@
             </Style.Triggers>
         </Style>
     </UserControl.Resources>
-    
+
     <Grid DataContext="{Binding ElementName=editor}">
         <local:ExtendedInkCanvas
             x:Name="inkCanvas"
-            
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
+            Width="{Binding Path=HightLightRect.Width}"
+            Height="{Binding Path=HightLightRect.Height}"
+            Margin="{Binding Path=HightLightRect, Converter={StaticResource RectToMarginConvert}}"
             Opacity="0">
             <!--<local:ExtendedInkCanvas.Background>
                 <ImageBrush ImageSource="{Binding Path=Source, ElementName=BackgroundImg}" Viewbox="{Binding Path=HightLightRect}" />
@@ -46,8 +48,6 @@
                     <Binding Path="HightLightRect" />
                     <Binding Path="ActualWidth" RelativeSource="{RelativeSource Self}" />
                     <Binding Path="ActualHeight" RelativeSource="{RelativeSource Self}" />
-                    <Binding Path="ActualWidth" />
-                    <Binding Path="ActualHeight" />
                 </MultiBinding>
             </Grid.Margin>
 

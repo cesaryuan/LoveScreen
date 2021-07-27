@@ -32,12 +32,9 @@
             x:Name="imageEditTool"
             HorizontalAlignment="Left"
             VerticalAlignment="Top"
-            Width="{Binding Path=HightLightRect.Width}"
-            Height="{Binding Path=HightLightRect.Height}"
-            Margin="{Binding Path=HightLightRect, Converter={StaticResource RectToMarginConvert}}"
             HightLightRect="{Binding Path=HightLightRect, ElementName=window}"
             Visibility="{Binding Path=InnerFrameMode, Converter={StaticResource IsVisibilityConvert}, ConverterParameter=4}" />
-        
+
         <!--  黑色遮罩  -->
         <Path
             x:Name="outterFrame"

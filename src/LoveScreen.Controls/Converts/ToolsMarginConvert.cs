@@ -18,8 +18,8 @@ namespace LoveScreen.Controls.Converts
                 Rect hightLightRect = (Rect)values[0];
                 double toolWidth = (double)values[1];
                 double toolHeight = (double)values[2] + 5;
-                double screenWidth = (double)values[3];
-                double screenHeight = (double)values[4];
+                double screenWidth = SystemParameters.PrimaryScreenWidth;
+                double screenHeight = SystemParameters.PrimaryScreenHeight;
 
                 double marginX = 0;
                 double marginY = 0;
