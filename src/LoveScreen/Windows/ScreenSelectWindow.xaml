@@ -30,6 +30,8 @@
         <Image x:Name="BackgroundImg" />
         <controls:ImageEditTool
             x:Name="imageEditTool"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Top"
             Width="{Binding Path=HightLightRect.Width}"
             Height="{Binding Path=HightLightRect.Height}"
             Margin="{Binding Path=HightLightRect, Converter={StaticResource RectToMarginConvert}}"
